@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣航空資訊總覽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #07111F;
+  --bg2:       #0C1A2E;
+  --surface:   #0F2040;
+  --surface2:  #142850;
+  --border:    rgba(80,140,220,0.18);
+  --border2:   rgba(80,140,220,0.32);
+  --amber:     #E8A020;
+  --amber2:    #F5C060;
+  --blue:      #4A9AE8;
+  --blue2:     #7BBCF8;
+  --text:      #D8E8F8;
+  --text2:     #8AAAC8;
+  --text3:     #506880;
+  --active:    #1A3A60;
+  --runway:    rgba(232,160,32,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans TC', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Runway texture overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 119px,
+      rgba(232,160,32,0.03) 119px,
+      rgba(232,160,32,0.03) 120px
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ── */
+.hdr {
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(7,17,31,0.98) 0%, rgba(7,17,31,0.92) 100%);
+  backdrop-filter: blur(8px);
+}
+.hdr-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: 72px;
+}
+.hdr-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  flex: 1;
+}
+.hdr-sigil {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--amber);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+.hdr-sigil::after {
+  content: '✈';
+  font-size: 18px;
+  color: var(--amber);
+  transform: rotate(-30deg);
+  display: block;
+}
+.hdr-titles {}
+.hdr-sup {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--amber);
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.hdr-main {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  line-height: 1;
+}
+.hdr-meta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: right;
+  gap: 4px;
+  padding: 16px 0;
+}
+.hdr-meta-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+.hdr-meta-item span { color: var(--text2); }
+
+/* ── KPI strip ── */
+.kpi-strip {
+  position: relative;
+  z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.kpi-strip-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.kpi-item {
+  padding: 18px 24px 18px 0;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+.kpi-item:last-child { border-right: none; padding-left: 24px; padding-right: 0; }
+.kpi-item:not(:first-child):not(:last-child) { padding-left: 24px; }
+.kpi-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--amber);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.kpi-unit {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--amber2);
+  margin-left: 4px;
+  letter-spacing: 0;
+}
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Section label ── */
+.section-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 40px 0;
+  position: relative;
+  z-index: 10;
+}
+.section-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Dashboard grid ── */
+.dash-grid {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 40px 48px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  position: relative;
+  z-index: 10;
+}
+@media (max-width: 1000px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .dash-grid { grid-template-columns: 1fr; padding: 0 20px 32px; } }
+
+/* ── Dashboard card ── */
+.dash-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+.dash-card:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+  transform: translateY(-2px);
+}
+.dash-card.inactive {
+  cursor: default;
+  opacity: 0.6;
+}
+.dash-card.inactive:hover {
+  border-color: var(--border);
+  background: var(--surface);
+  transform: none;
+}
+
+/* card top accent bar */
+.dash-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--amber));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.dash-card:not(.inactive):hover::before { opacity: 1; }
+
+.card-head {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.card-tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+.card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+.card-desc {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.card-body {
+  padding: 16px 24px;
+  flex: 1;
+}
+
+/* scope tags */
+.scope-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.scope-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  background: rgba(74,154,232,0.06);
+  letter-spacing: 0.03em;
+}
+
+/* feature list */
+.feat-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feat-list li {
+  font-size: 12px;
+  color: var(--text2);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+.feat-list li::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+  margin-top: 5px;
+  opacity: 0.7;
+}
+
+.card-foot {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-updated {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+}
+.card-updated span { color: var(--text2); }
+
+.card-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s;
+}
+.dash-card:not(.inactive):hover .card-btn { gap: 10px; }
+.card-btn-arrow {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.card-coming {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 10px;
+}
+
+/* ── Footer ── */
+.footer {
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid var(--border);
+  padding: 24px 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-src {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.7;
+}
+.footer-src strong { color: var(--text2); font-weight: 500; }
+.footer-note {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="hdr-brand">
+      <div class="hdr-sigil"></div>
+      <div class="hdr-titles">
+        <div class="hdr-sup">Taiwan Civil Aviation · Intelligence Hub</div>
+        <div class="hdr-main">台灣航空資訊總覽</div>
+      </div>
+    </div>
+    <div class="hdr-meta">
+      <div class="hdr-meta-item">資料來源：<span>中華民國民用航空局統計月報</span></div>
+      <div class="hdr-meta-item">統計範圍：<span>民國 104–114年（2015–2025）</span></div>
+      <div class="hdr-meta-item">最後更新：<span>2026-04-29</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- KPI strip -->
+<div class="kpi-strip">
+  <div class="kpi-strip-inner">
+    <div class="kpi-item">
+      <div class="kpi-label">2025年國際及兩岸旅客量</div>
+      <div>
+        <span class="kpi-value">5,833</span>
+        <span class="kpi-unit">萬人次</span>
+      </div>
+      <div class="kpi-sub">全國各國際機場合計</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">國際及兩岸總航點數</div>
+      <div>
+        <span class="kpi-value">110</span>
+        <span class="kpi-unit">條</span>
+      </div>
+      <div class="kpi-sub">含國際航線及兩岸航線</div>
+    </div>
+    <div class="kpi-item">
+      <div class="kpi-label">國際及兩岸起降架次</div>
+      <div>
+        <span class="kpi-value">164,689</span>
+        <span class="kpi-unit">次</span>
+      </div>
+      <div class="kpi-sub">2025年全年</div>
+    </div>
+  </div>
+</div>
+
+<!-- Section label -->
+<div class="section-wrap">
+  <div class="section-label">儀表板目錄</div>
+</div>
+
+<!-- Dashboard grid -->
+<div class="dash-grid">
+
+  <!-- 1. 機場旅客運量 -->
+  <a class="dash-card" href="index.html" style="--card-accent:#4A9AE8;">
+    <div class="card-head">
+      <div class="card-tag">Airport · Passenger</div>
+      <div class="card-title">台灣機場<br>旅客運量統計</div>
+      <div class="card-desc">各國際機場歷年旅客量趨勢，含疫情衝擊與復甦分析。</div>
+    </div>
+    <div class="card-body">
+      <div class="scope-tags">
+        <span class="scope-tag">2010–2025</span>
+        <span class="scope-tag">國際機場</span>
+        <span class="scope-tag">兩岸航線</span>
+      </div>
+      <ul class="feat-list">
+        <li>全國機場旅客量歷年趨勢</li>
+        <li>各機場佔比與排名分析</li>
+        <li>疫情前後復甦指數比較</li>
+        <li>YoY成長率追蹤</li>
+      </ul>
+    </div>
+    <div class="card-foot">
+      <div class="card-updated">更新：<span>2026-04-29</span></div>
+      <div class="card-btn">進入儀表板 <span class="card-btn-arrow">→</span></div>
+    </div>
+  </a>
+
+  <!-- 2. 機場航線分析 -->
+  <a class="dash-card" href="taiwan_airport_dashboard.html" style="--card-accent:#E8A020;">
+    <div class="card-head">
+      <div class="card-tag">Airport · Routes</div>
+      <div class="card-title">台灣國際機場<br>航線資料分析</div>
+      <div class="card-desc">各機場國際航線結構深度分析，含航點、頻次與航空公司分佈。</div>
+    </div>
+    <div class="card-body">
+      <div class="scope-tags">
+        <span class="scope-tag">國際航線</span>
+        <span class="scope-tag">兩岸航線</span>
+        <span class="scope-tag">航線結構</span>
+      </div>
+      <ul class="feat-list">
+        <li>各機場航線數與航點分佈</li>
+        <li>航線頻次與座位供給分析</li>
+        <li>航空公司市場份額</li>
+        <li>歷年航線開闢與停航紀錄</li>
+      </ul>
+    </div>
+    <div class="card-foot">
+      <div class="card-updated">更新：<span>2026-04-29</span></div>
+      <div class="card-btn">進入儀表板 <span class="card-btn-arrow">→</span></div>
+    </div>
+  </a>
+
+  <!-- 3. 國際航線地圖 -->
+  <a class="dash-card" href="taiwan_routes_map.html" style="--card-accent:#2E9E7A;">
+    <div class="card-head">
+      <div class="card-tag">Airport · Map</div>
+      <div class="card-title">台灣機場<br>國際航線地圖</div>
+      <div class="card-desc">互動式地圖呈現台灣對外航線網絡的地理分佈與覆蓋範圍。</div>
+    </div>
+    <div class="card-body">
+      <div class="scope-tags">
+        <span class="scope-tag">互動地圖</span>
+        <span class="scope-tag">航線網絡</span>
+        <span class="scope-tag">地理分析</span>
+      </div>
+      <ul class="feat-list">
+        <li>大圓弧航線視覺化</li>
+        <li>各機場對外航點分佈</li>
+        <li>依航空公司／地區篩選</li>
+        <li>歷年航線覆蓋變化</li>
+      </ul>
+    </div>
+    <div class="card-foot">
+      <div class="card-updated">更新：<span>2026-04-29</span></div>
+      <div class="card-btn">進入儀表板 <span class="card-btn-arrow">→</span></div>
+    </div>
+  </a>
+
+  <!-- 4. 航空公司資訊 -->
+  <a class="dash-card" href="DB_TW_Airport_Airline-Companies.html" style="--card-accent:#C85A30;">
+    <div class="card-head">
+      <div class="card-tag">Airline · Companies</div>
+      <div class="card-title">來台航空公司<br>資訊儀表板</div>
+      <div class="card-desc">國際及兩岸來台航空公司的市場結構、載客排名與歷年趨勢。</div>
+    </div>
+    <div class="card-body">
+      <div class="scope-tags">
+        <span class="scope-tag">2015–2025</span>
+        <span class="scope-tag">國籍航空</span>
+        <span class="scope-tag">外籍航空</span>
+      </div>
+      <ul class="feat-list">
+        <li>年度航空公司載客排名</li>
+        <li>國籍 vs 外籍市場佔比</li>
+        <li>各機場航空公司進駐分析</li>
+        <li>國籍航空公司深度剖析</li>
+      </ul>
+    </div>
+    <div class="card-foot">
+      <div class="card-updated">更新：<span>2026-04-29</span></div>
+      <div class="card-btn">進入儀表板 <span class="card-btn-arrow">→</span></div>
+    </div>
+  </a>
+
+  <!-- 5. 國內航線（預留） -->
+  <div class="dash-card inactive" style="--card-accent:#506880;">
+    <div class="card-head">
+      <div class="card-tag">Airport · Domestic</div>
+      <div class="card-title">國內航線<br>旅客運量統計</div>
+      <div class="card-desc">國內各航線旅客量、航班頻次及離島航線分析。</div>
+    </div>
+    <div class="card-body">
+      <div class="scope-tags">
+        <span class="scope-tag">國內航線</span>
+        <span class="scope-tag">離島航線</span>
+      </div>
+      <ul class="feat-list">
+        <li>國內航線旅客量趨勢</li>
+        <li>離島航線覆蓋分析</li>
+        <li>國內航空公司市場結構</li>
+      </ul>
+    </div>
+    <div class="card-foot">
+      <div class="card-updated">製作中</div>
+      <div class="card-coming">即將推出</div>
+    </div>
+  </div>
+
+  <!-- 6. 航空貨運（預留） -->
+  <div class="dash-card inactive" style="--card-accent:#506880;">
+    <div class="card-head">
+      <div class="card-tag">Cargo · Air Freight</div>
+      <div class="card-title">台灣航空<br>貨運分析</div>
+      <div class="card-desc">國際航空貨運量、貨運航線結構及主要航空貨運公司分析。</div>
+    </div>
+    <div class="card-body">
+      <div class="scope-tags">
+        <span class="scope-tag">航空貨運</span>
+        <span class="scope-tag">貨運航線</span>
+      </div>
+      <ul class="feat-list">
+        <li>歷年貨運量與貨值趨勢</li>
+        <li>主要貨運航線分析</li>
+        <li>貨運航空公司市場份額</li>
+      </ul>
+    </div>
+    <div class="card-foot">
+      <div class="card-updated">製作中</div>
+      <div class="card-coming">即將推出</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer" style="border-top: 1px solid var(--border); padding-top: 24px;">
+    <div class="footer-src">
+      <strong>資料來源</strong>：中華民國民用航空局統計月報<br>
+      本儀表板資料僅供參考，以民航局官方發布為準。
+    </div>
+    <div class="footer-note">Taiwan Civil Aviation Intelligence · 2026</div>
+  </div>
+</footer>
+
+</body>
+</html>
