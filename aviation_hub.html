@@ -114,73 +114,8 @@ body::before {
   color: var(--text);
   line-height: 1;
 }
-.hdr-meta {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: right;
-  gap: 4px;
-  padding: 16px 0;
-}
-.hdr-meta-item {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: var(--text3);
-  letter-spacing: 0.05em;
-}
-.hdr-meta-item span { color: var(--text2); }
 
-/* ── KPI strip ── */
-.kpi-strip {
-  position: relative;
-  z-index: 10;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-.kpi-strip-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 40px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-}
-.kpi-item {
-  padding: 18px 24px 18px 0;
-  border-right: 1px solid var(--border);
-  position: relative;
-}
-.kpi-item:last-child { border-right: none; padding-left: 24px; padding-right: 0; }
-.kpi-item:not(:first-child):not(:last-child) { padding-left: 24px; }
-.kpi-label {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 6px;
-}
-.kpi-value {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--amber);
-  line-height: 1;
-  letter-spacing: 0.02em;
-}
-.kpi-unit {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--amber2);
-  margin-left: 4px;
-  letter-spacing: 0;
-}
-.kpi-sub {
-  font-size: 11px;
-  color: var(--text3);
-  margin-top: 4px;
-  font-family: 'JetBrains Mono', monospace;
-}
+
 
 /* ── Section label ── */
 .section-wrap {
@@ -222,6 +157,42 @@ body::before {
 }
 @media (max-width: 1000px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px)  { .dash-grid { grid-template-columns: 1fr; padding: 0 20px 32px; } }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+
+  /* Header：隱藏右側 meta 資訊，縮小 padding */
+  .hdr-inner {
+    padding: 0 20px;
+    min-height: 60px;
+  }
+  .hdr-main {
+    font-size: 18px;
+  }
+  .hdr-sup {
+    font-size: 9px;
+  }
+  .hdr-sigil {
+    width: 34px;
+    height: 34px;
+  }
+  .hdr-sigil::after {
+    font-size: 15px;
+  }
+
+  /* Section label */
+  .section-wrap {
+    padding: 32px 20px 0;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
 
 /* ── Dashboard card ── */
 .dash-card {
@@ -425,43 +396,11 @@ body::before {
         <div class="hdr-main">台灣航空資訊總覽</div>
       </div>
     </div>
-    <div class="hdr-meta">
-      <div class="hdr-meta-item">資料來源：<span>中華民國民用航空局統計月報</span></div>
-      <div class="hdr-meta-item">統計範圍：<span>民國 104–114年（2015–2025）</span></div>
-      <div class="hdr-meta-item">最後更新：<span>2026-04-29</span></div>
-    </div>
+
   </div>
 </header>
 
-<!-- KPI strip -->
-<div class="kpi-strip">
-  <div class="kpi-strip-inner">
-    <div class="kpi-item">
-      <div class="kpi-label">2025年國際及兩岸旅客量</div>
-      <div>
-        <span class="kpi-value">5,833</span>
-        <span class="kpi-unit">萬人次</span>
-      </div>
-      <div class="kpi-sub">全國各國際機場合計</div>
-    </div>
-    <div class="kpi-item">
-      <div class="kpi-label">國際及兩岸總航點數</div>
-      <div>
-        <span class="kpi-value">110</span>
-        <span class="kpi-unit">條</span>
-      </div>
-      <div class="kpi-sub">含國際航線及兩岸航線</div>
-    </div>
-    <div class="kpi-item">
-      <div class="kpi-label">國際及兩岸起降架次</div>
-      <div>
-        <span class="kpi-value">164,689</span>
-        <span class="kpi-unit">次</span>
-      </div>
-      <div class="kpi-sub">2025年全年</div>
-    </div>
-  </div>
-</div>
+
 
 <!-- Section label -->
 <div class="section-wrap">
@@ -553,7 +492,7 @@ body::before {
   <a class="dash-card" target="_blank" href="https://corinne37ccc.github.io/DB_TW_Airport_Airline-Companies/DB_TW_Airport_Airline-Companies.html" style="--card-accent:#C85A30;">
     <div class="card-head">
       <div class="card-tag">Airline · Companies</div>
-      <div class="card-title">航空公司<br>資訊儀表板</div>
+      <div class="card-title">來台航空公司<br>資訊儀表板</div>
       <div class="card-desc">國際及兩岸來台航空公司的市場結構、載客排名與歷年趨勢。</div>
     </div>
     <div class="card-body">
@@ -630,9 +569,13 @@ body::before {
   <div class="footer" style="border-top: 1px solid var(--border); padding-top: 24px;">
     <div class="footer-src">
       <strong>資料來源</strong>：中華民國民用航空局統計月報<br>
+      統計範圍：民國 104–114年（2015–2025）｜最後更新：2026-04-29<br>
       本儀表板資料僅供參考，以民航局官方發布為準。
     </div>
-    <div class="footer-note">Taiwan Civil Aviation Intelligence · 2026</div>
+    <div class="footer-note">
+      製作者：Corinne Lin<br>
+      Taiwan Civil Aviation Intelligence · 2026
+    </div>
   </div>
 </footer>
 
